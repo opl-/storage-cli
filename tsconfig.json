@@ -1,0 +1,23 @@
+{
+	"compilerOptions": {
+		"outDir": "./dist/",
+
+		// @tsconfig/node22
+		"lib": ["es2023"],
+		"module": "nodenext",
+		"target": "es2022",
+
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"moduleResolution": "node16",
+
+		// @tsconfig/node-ts
+		"rewriteRelativeImportExtensions": true,
+		"erasableSyntaxOnly": true,
+		"verbatimModuleSyntax": true,
+	},
+	"include": [
+		"lib/**/*",
+	],
+}

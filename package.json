@@ -1,0 +1,22 @@
+{
+  "name": "storage-cli",
+  "version": "0.1.0",
+  "main": "dist/index.mjs",
+  "bin": "dist/index.mjs",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "opl",
+  "license": "UNLICENSED",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "@types/yargs": "^17.0.33",
+    "tsx": "^4.19.3",
+    "typescript": "~5.8.3"
+  },
+  "dependencies": {
+    "yargs": "^17.7.2"
+  }
+}
