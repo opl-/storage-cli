@@ -46,7 +46,7 @@ function timeToName(time: number): string {
 		acc = Math.floor(acc / 26);
 	}
 
-	return out.reverse().join('');
+	return out.padStart(7, 'a');
 }
 
 export function mkdirCommand(yargs: Argv) {
