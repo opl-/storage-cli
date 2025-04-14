@@ -36,12 +36,12 @@ function timeToName(time: number): string {
 	if (adjustedTime < 0) throw new Error('Creation time is before the epoch time.');
 
 	const CHARS = 'abcdefghijklmnopqrstuvwxyz';
-	const out: string[] = [];
+	let out = '';
 
 	let acc = adjustedTime;
 	while (acc > 0) {
 		const thing = acc % 26;
-		out.push(CHARS[thing]);
+		out = CHARS[thing] + out;
 
 		acc = Math.floor(acc / 26);
 	}
