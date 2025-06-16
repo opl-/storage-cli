@@ -94,8 +94,7 @@ export function mkdirCommand(yargs: Argv) {
 			const directoryName = timeToName(creationTime);
 
 			const directoryPath = resolve(storageRootPath, directoryName);
-			const metadataDirectoryPath = resolve(directoryPath, '.storage-meta');
-			const metadataPath = resolve(metadataDirectoryPath, 'info.json');
+			const metadataPath = resolve(directoryPath, '.storage-meta.json');
 
 			try {
 				await mkdir(directoryPath);
@@ -106,13 +105,6 @@ export function mkdirCommand(yargs: Argv) {
 				} else {
 					console.error('error creating directory:', ex);
 				}
-				throw process.exit(1);
-			}
-
-			try {
-				await mkdir(metadataDirectoryPath);
-			} catch (ex: any) {
-				console.error('error creating metadata directory:', ex);
 				throw process.exit(1);
 			}
 
