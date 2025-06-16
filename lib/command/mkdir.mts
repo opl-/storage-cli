@@ -77,7 +77,7 @@ export function mkdirCommand(yargs: Argv) {
 				.option('tag', {
 					alias: ['t'],
 					describe: 'Add tags to the directory metadata.',
-					type: 'array',
+					type: 'string',
 				})
 		},
 		async handler(args) {
@@ -112,7 +112,7 @@ export function mkdirCommand(yargs: Argv) {
 				name: trimmedName,
 				description: args.description ?? undefined,
 				created: new Date(creationTime).toISOString(),
-				tags: (args.tag?.length ?? 0) > 0 ? args.tag : undefined,
+				tags: Array.isArray(args.tag) ? args.tag : typeof(args.tag) === 'string' ? [args.tag] : [],
 			};
 
 			try {
