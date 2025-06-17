@@ -1,5 +1,5 @@
 import type { Argv } from 'yargs';
-import { createDirectory, resolveStorageRoot } from '../store.ts';
+import { createDirectory, createDirectoryLocation, resolveStorageRoot } from '../store.ts';
 import { parseTime } from '../util.ts';
 
 export function mkdirCommand(yargs: Argv) {
@@ -48,14 +48,21 @@ export function mkdirCommand(yargs: Argv) {
 
 			const creationTime = await parseTime(args.time);
 
-			const directoryPath = await createDirectory({
+			const metadata = {
+				name: trimmedName,
+				description: args.description ?? undefined,
+				created: new Date(creationTime),
+				tags: Array.isArray(args.tag) ? args.tag : typeof(args.tag) === 'string' ? [args.tag] : [],
+			};
+
+			const directoryLocation = createDirectoryLocation({
 				rootPath: storageRootPath,
-				metadata: {
-					name: trimmedName,
-					description: args.description ?? undefined,
-					created: new Date(creationTime),
-					tags: Array.isArray(args.tag) ? args.tag : typeof(args.tag) === 'string' ? [args.tag] : [],
-				},
+				metadata,
+			});
+
+			const directoryPath = await createDirectory({
+				location: directoryLocation,
+				metadata,
 			});
 
 			console.log(directoryPath);

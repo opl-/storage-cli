@@ -3,6 +3,16 @@ import { resolve } from 'node:path';
 import { serializeMetadata, type Metadata } from './metadata.ts';
 import { timeToName } from './util.ts';
 
+export interface PartitionLocation {
+	rootPath: string;
+	partition: string;
+}
+
+export interface DirectoryLocation extends PartitionLocation {
+	identifier: string;
+	slug: string | null;
+}
+
 export async function resolveStorageRoot(userValue: string | undefined): Promise<string> {
 	if (userValue) return userValue;
 	// TODO: resolve parent storage root (needs marker?)
@@ -10,15 +20,45 @@ export async function resolveStorageRoot(userValue: string | undefined): Promise
 	return '/storage';
 }
 
-export interface CreateDirectoryOpts {
+// Ref: https://stackoverflow.com/a/31976060
+const HIDDEN_CHARS = /[\s\/\\<>:"|?*\u0000-\u0031]+/g;
+export function nameToSlug(name: string): string {
+	return name.toLocaleLowerCase().replace(HIDDEN_CHARS, '-').replace(/(^-+|-+$)/g, '');
+}
+
+export interface CreateDirectoryLocationOpts {
 	rootPath: string;
+	metadata: Metadata;
+	preferredPartition?: string;
+}
+
+export function createDirectoryLocation({ rootPath, metadata, preferredPartition }: CreateDirectoryLocationOpts): DirectoryLocation {
+	const identifier = timeToName(metadata.created.getTime());
+	const slug = nameToSlug(metadata.name);
+
+	return {
+		rootPath,
+		partition: preferredPartition ?? 'frequent',
+		identifier,
+		slug,
+	};
+}
+
+export function resolveDirectoryLocation(location: DirectoryLocation): string {
+	return resolve(
+		location.rootPath,
+		location.partition,
+		(location.slug ? location.slug + '-' : '') + location.identifier,
+	);
+}
+
+export interface CreateDirectoryOpts {
+	location: DirectoryLocation;
 	metadata: Metadata;
 }
 
 export async function createDirectory(opts: CreateDirectoryOpts): Promise<string> {
-	const directoryName = timeToName(opts.metadata.created.getTime());
-
-	const directoryPath = resolve(opts.rootPath, directoryName);
+	const directoryPath = resolveDirectoryLocation(opts.location);
 	const metadataPath = resolve(directoryPath, '.storage-meta.json');
 
 	try {
