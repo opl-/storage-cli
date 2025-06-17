@@ -1,5 +1,5 @@
 import { mkdir, symlink, unlink, utimes, writeFile } from 'node:fs/promises';
-import { relative, resolve } from 'node:path';
+import { basename, relative, resolve } from 'node:path';
 import { serializeMetadata, type Metadata } from './metadata.ts';
 import { timeToName } from './util.ts';
 
@@ -59,7 +59,7 @@ export interface CreateLinksOpts {
 export async function createLinks({ location }: CreateLinksOpts): Promise<void> {
 	const directoryPath = resolveDirectoryLocation(location);
 
-	const allLinkPath = resolve(location.rootPath, 'all/', location.identifier);
+	const allLinkPath = resolve(location.rootPath, 'all/', basename(directoryPath));
 	const byIdLinkPath = resolve(location.rootPath, 'by-id/', location.identifier);
 
 	await Promise.all([
@@ -73,7 +73,9 @@ export interface RemoveLinksOpts {
 }
 
 export async function removeLinks({ location }: CreateLinksOpts): Promise<void> {
-	const allLinkPath = resolve(location.rootPath, 'all/', location.identifier);
+	const directoryPath = resolveDirectoryLocation(location);
+
+	const allLinkPath = resolve(location.rootPath, 'all/', basename(directoryPath));
 	const byIdLinkPath = resolve(location.rootPath, 'by-id/', location.identifier);
 
 	await Promise.all([
