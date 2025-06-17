@@ -1,5 +1,5 @@
 import type { Argv } from 'yargs';
-import { createDirectory } from '../store.ts';
+import { createDirectory, resolveStorageRoot } from '../store.ts';
 import { parseTime } from '../util.ts';
 
 export function mkdirCommand(yargs: Argv) {
@@ -32,9 +32,13 @@ export function mkdirCommand(yargs: Argv) {
 					describe: 'Add tags to the directory metadata.',
 					type: 'string',
 				})
+				.option('root', {
+					describe: 'Specify the storage root.',
+					type: 'string',
+				})
 		},
 		async handler(args) {
-			const storageRootPath = '/mnt/storage';
+			const storageRootPath = await resolveStorageRoot(args.root);
 
 			const trimmedName = args.name!.trim();
 
