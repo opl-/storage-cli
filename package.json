@@ -1,9 +1,14 @@
 {
   "name": "storage-cli",
   "version": "0.1.0",
-  "main": "dist/index.mjs",
+  "type": "module",
+  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
   "bin": {
-    "storage-cli": "dist/bin/storage-cli.mjs"
+    "storage-cli": "./dist/bin/storage-cli.js"
   },
   "scripts": {
     "build": "tsc",

@@ -1,5 +1,5 @@
 import yargs from 'yargs';
-import { mkdirCommand } from '../command/mkdir.mts';
+import { mkdirCommand } from '../command/mkdir.ts';
 
 let parser = yargs()
 	.strict()
