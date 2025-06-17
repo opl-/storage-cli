@@ -16,6 +16,11 @@ export function mkdirCommand(yargs: Argv) {
 					describe: 'Description put into directory\'s metadata.',
 					type: 'string',
 				})
+				.option('slug', {
+					alias: ['s'],
+					describe: 'Specify the on-disk directory name to use instead of the simplified name.',
+					type: 'string',
+				})
 				.option('time', {
 					alias: ['d'],
 					describe: 'Specify a creation time, or a file to use its mtime.',
@@ -34,6 +39,11 @@ export function mkdirCommand(yargs: Argv) {
 				})
 				.option('root', {
 					describe: 'Specify the storage root.',
+					type: 'string',
+				})
+				.option('partition', {
+					alias: ['p'],
+					describe: 'Specify the storage partition to create the directory in.',
 					type: 'string',
 				})
 		},
@@ -58,7 +68,12 @@ export function mkdirCommand(yargs: Argv) {
 			const directoryLocation = createDirectoryLocation({
 				rootPath: storageRootPath,
 				metadata,
+				preferredPartition: args.partition,
 			});
+
+			if (args.slug) {
+				directoryLocation.slug = args.slug;
+			}
 
 			const directoryPath = await createDirectory({
 				location: directoryLocation,
