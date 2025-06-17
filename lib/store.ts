@@ -1,5 +1,5 @@
-import { mkdir, utimes, writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { mkdir, symlink, unlink, utimes, writeFile } from 'node:fs/promises';
+import { relative, resolve } from 'node:path';
 import { serializeMetadata, type Metadata } from './metadata.ts';
 import { timeToName } from './util.ts';
 
@@ -52,6 +52,36 @@ export function resolveDirectoryLocation(location: DirectoryLocation): string {
 	);
 }
 
+export interface CreateLinksOpts {
+	location: DirectoryLocation;
+}
+
+export async function createLinks({ location }: CreateLinksOpts): Promise<void> {
+	const directoryPath = resolveDirectoryLocation(location);
+
+	const allLinkPath = resolve(location.rootPath, 'all/', location.identifier);
+	const byIdLinkPath = resolve(location.rootPath, 'by-id/', location.identifier);
+
+	await Promise.all([
+		symlink(relative(resolve(allLinkPath, '..'), directoryPath), allLinkPath),
+		symlink(relative(resolve(byIdLinkPath, '..'), directoryPath), byIdLinkPath),
+	]);
+}
+
+export interface RemoveLinksOpts {
+	location: DirectoryLocation;
+}
+
+export async function removeLinks({ location }: CreateLinksOpts): Promise<void> {
+	const allLinkPath = resolve(location.rootPath, 'all/', location.identifier);
+	const byIdLinkPath = resolve(location.rootPath, 'by-id/', location.identifier);
+
+	await Promise.all([
+		unlink(allLinkPath),
+		unlink(byIdLinkPath),
+	]);
+}
+
 export interface CreateDirectoryOpts {
 	location: DirectoryLocation;
 	metadata: Metadata;
@@ -83,6 +113,10 @@ export async function createDirectory(opts: CreateDirectoryOpts): Promise<string
 	} catch (ex: any) {
 		throw new Error('Error changing directory utimes.', { cause: ex });
 	}
+
+	await createLinks({
+		location: opts.location,
+	});
 
 	return directoryPath;
 }
