@@ -54,8 +54,8 @@ export function mvCommand(yargs: Argv) {
 			};
 
 			await moveDirectory({
-				sourcePath,
-				targetLocation,
+				source: sourcePath,
+				target: targetLocation,
 			});
 		},
 	});

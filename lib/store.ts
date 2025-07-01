@@ -270,12 +270,15 @@ export async function createDirectory(opts: CreateDirectoryOpts): Promise<string
 }
 
 export interface MoveDirectoryOpts {
-	sourcePath: string;
-	targetLocation: DirectoryLocation;
+	source: string | DirectoryLocation;
+	target: string | DirectoryLocation;
 }
 
-export async function moveDirectory({ sourcePath, targetLocation }: MoveDirectoryOpts): Promise<void> {
-	const targetPath = resolveDirectoryLocation(targetLocation);
+export async function moveDirectory({ source, target }: MoveDirectoryOpts): Promise<void> {
+	const sourcePath = typeof(source) === 'string' ? source : resolveDirectoryLocation(source);
+	const sourceLocation = typeof(source) === 'string' ? parseDirectoryLocation(source) : source;
+	const targetPath = typeof(target) === 'string' ? target : resolveDirectoryLocation(target);
+	const targetLocation = typeof(target) === 'string' ? parseDirectoryLocation(target) : target;
 
 	try {
 		// Ensure this process won't override an existing path.
@@ -290,7 +293,6 @@ export async function moveDirectory({ sourcePath, targetLocation }: MoveDirector
 
 	await rename(sourcePath, targetPath);
 
-	const sourceLocation = parseDirectoryLocation(sourcePath);
 	// The source might not be inside of a storage root.
 	if (sourceLocation !== null) {
 		await removeLinks({
@@ -298,7 +300,10 @@ export async function moveDirectory({ sourcePath, targetLocation }: MoveDirector
 		});
 	}
 
-	await createLinks({
-		location: targetLocation,
-	});
+	// The target might not be inside of a storage root.
+	if (targetLocation !== null) {
+		await createLinks({
+			location: targetLocation,
+		});
+	}
 }
