@@ -1,5 +1,5 @@
 import { mkdir, symlink, unlink, utimes, writeFile } from 'node:fs/promises';
-import { basename, relative, resolve } from 'node:path';
+import { basename, isAbsolute, join as joinPath, relative, resolve } from 'node:path';
 import { serializeMetadata, type Metadata } from './metadata.ts';
 import { timeToName } from './util.ts';
 
@@ -8,9 +8,12 @@ export interface PartitionLocation {
 	partition: string;
 }
 
-export interface DirectoryLocation extends PartitionLocation {
+export interface DirectoryName {
 	identifier: string;
 	slug: string | null;
+}
+
+export interface DirectoryLocation extends DirectoryName, PartitionLocation {
 }
 
 export async function resolveStorageRoot(userValue: string | undefined): Promise<string> {
@@ -48,6 +51,41 @@ export function createDirectoryLocation({ rootPath, metadata, preferredPartition
 	};
 }
 
+export function parseDirectoryName(directoryName: string): DirectoryName | null {
+	const parsedDirectoryName = /^(?:(.*)-)?([^\-]+)$/.exec(directoryName);
+	if (parsedDirectoryName === null) return null;
+
+	return {
+		slug: parsedDirectoryName[1] ?? null,
+		identifier: parsedDirectoryName[2],
+	};
+}
+
+export function parseDirectoryLocation(path: string): DirectoryLocation | null {
+	if (!isAbsolute(path)) return null;
+
+	const partitionPath = joinPath(path, '..');
+	const rootPath = joinPath(path, '../..');
+
+	if (partitionPath === rootPath) {
+		// There are too few segments to contain both a partition and a storage directory name.
+		return null;
+	}
+
+	const directoryName = parseDirectoryName(basename(path));
+	if (directoryName === null) return null;
+
+	return {
+		rootPath,
+		partition: basename(partitionPath),
+		...directoryName,
+	};
+}
+
+export function resolveDirectoryName(directoryName: DirectoryName): string {
+	return (directoryName.slug ? directoryName.slug + '-' : '') + directoryName.identifier;
+}
+
 export function resolveDirectoryLocation(location: DirectoryLocation): string {
 	if (!isValidPartitionName(location.partition)) {
 		throw new Error(`Partition name ${JSON.stringify(location.partition)} is reserved and can't be used.`);
@@ -56,7 +94,7 @@ export function resolveDirectoryLocation(location: DirectoryLocation): string {
 	return resolve(
 		location.rootPath,
 		location.partition,
-		(location.slug ? location.slug + '-' : '') + location.identifier,
+		resolveDirectoryName(location),
 	);
 }
 
