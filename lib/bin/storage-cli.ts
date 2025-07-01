@@ -1,4 +1,5 @@
 import yargs from 'yargs';
+import { initCommand } from '../command/init.ts';
 import { mkdirCommand } from '../command/mkdir.ts';
 
 let parser = yargs()
@@ -7,6 +8,7 @@ let parser = yargs()
 	.demandCommand();
 
 [
+	initCommand,
 	mkdirCommand,
 ].forEach((command) => {
 	parser = command(parser);
