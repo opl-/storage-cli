@@ -1,4 +1,4 @@
-import { access, constants as fsConstants, mkdir, symlink, unlink, utimes, writeFile } from 'node:fs/promises';
+import { access, constants as fsConstants, mkdir, rename, symlink, unlink, utimes, writeFile } from 'node:fs/promises';
 import { basename, isAbsolute, join as joinPath, relative, resolve } from 'node:path';
 import { serializeMetadata, type Metadata } from './metadata.ts';
 import { timeToName } from './util.ts';
@@ -267,4 +267,38 @@ export async function createDirectory(opts: CreateDirectoryOpts): Promise<string
 	});
 
 	return directoryPath;
+}
+
+export interface MoveDirectoryOpts {
+	sourcePath: string;
+	targetLocation: DirectoryLocation;
+}
+
+export async function moveDirectory({ sourcePath, targetLocation }: MoveDirectoryOpts): Promise<void> {
+	const targetPath = resolveDirectoryLocation(targetLocation);
+
+	try {
+		// Ensure this process won't override an existing path.
+		await access(targetPath, fsConstants.F_OK);
+		throw new Error(`Target path already exists: ${targetPath}`);
+	} catch (ex: any) {
+		if (ex.code !== 'ENOENT') {
+			// The expected behavior is for the target to not exist, but something else happened.
+			throw ex;
+		}
+	}
+
+	await rename(sourcePath, targetPath);
+
+	const sourceLocation = parseDirectoryLocation(sourcePath);
+	// The source might not be inside of a storage root.
+	if (sourceLocation !== null) {
+		await removeLinks({
+			location: sourceLocation,
+		});
+	}
+
+	await createLinks({
+		location: targetLocation,
+	});
 }
