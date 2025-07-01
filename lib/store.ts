@@ -3,6 +3,8 @@ import { basename, isAbsolute, join as joinPath, relative, resolve } from 'node:
 import { serializeMetadata, type Metadata } from './metadata.ts';
 import { timeToName } from './util.ts';
 
+export const DIRECTORY_METADATA_FILENAME = '.storage-meta.json';
+
 export interface PartitionLocation {
 	rootPath: string;
 	partition: string;
@@ -137,7 +139,7 @@ export interface CreateDirectoryOpts {
 
 export async function createDirectory(opts: CreateDirectoryOpts): Promise<string> {
 	const directoryPath = resolveDirectoryLocation(opts.location);
-	const metadataPath = resolve(directoryPath, '.storage-meta.json');
+	const metadataPath = resolve(directoryPath, DIRECTORY_METADATA_FILENAME);
 
 	try {
 		await mkdir(directoryPath);
