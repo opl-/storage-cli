@@ -21,8 +21,14 @@ export interface DirectoryLocation extends DirectoryName, PartitionLocation {
 
 export async function resolveStorageRoot(userValue: string | undefined): Promise<string> {
 	if (userValue) return userValue;
-	// TODO: resolve parent storage root (needs marker?)
 	if (process.env.STORAGE_ROOT) return process.env.STORAGE_ROOT;
+
+	const foundRoot = await findStorageRoot({
+		path: process.cwd(),
+	});
+	if (foundRoot) return foundRoot;
+
+	if (process.env.STORAGE_DEFAULT_ROOT) return process.env.STORAGE_DEFAULT_ROOT;
 	return '/storage';
 }
 
