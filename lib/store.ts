@@ -1,4 +1,4 @@
-import { mkdir, symlink, unlink, utimes, writeFile } from 'node:fs/promises';
+import { access, constants as fsConstants, mkdir, symlink, unlink, utimes, writeFile } from 'node:fs/promises';
 import { basename, isAbsolute, join as joinPath, relative, resolve } from 'node:path';
 import { serializeMetadata, type Metadata } from './metadata.ts';
 import { timeToName } from './util.ts';
@@ -24,6 +24,30 @@ export async function resolveStorageRoot(userValue: string | undefined): Promise
 	// TODO: resolve parent storage root (needs marker?)
 	if (process.env.STORAGE_ROOT) return process.env.STORAGE_ROOT;
 	return '/storage';
+}
+
+export async function isStorageRoot(storageRoot: string): Promise<boolean> {
+	const storageRootMetadataPath = resolve(storageRoot, ROOT_METADATA_FILENAME);
+
+	try {
+		await access(storageRootMetadataPath, fsConstants.F_OK);
+	} catch (ex: any) {
+		return false;
+	}
+
+	return true;
+}
+
+export async function isStorageDirectory(storageRoot: string): Promise<boolean> {
+	const directoryMetadataPath = resolve(storageRoot, DIRECTORY_METADATA_FILENAME);
+
+	try {
+		await access(directoryMetadataPath, fsConstants.F_OK);
+	} catch (ex: any) {
+		return false;
+	}
+
+	return true;
 }
 
 // Ref: https://stackoverflow.com/a/31976060
