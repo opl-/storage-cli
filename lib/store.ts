@@ -50,6 +50,41 @@ export async function isStorageDirectory(storageRoot: string): Promise<boolean> 
 	return true;
 }
 
+export interface FindStorageRootOpts {
+	path: string;
+
+	/**
+	 * Limit for how many directories up the storage root metadata file can be. Defaults to `Infinity`.
+	 */
+	maxDepth?: number;
+}
+
+export async function findStorageRoot({ path, maxDepth = Infinity }: FindStorageRootOpts): Promise<string | null> {
+	if (!isAbsolute(path)) throw new Error('Search start path must be absolute.');
+
+	// Remove path traversal nodes and trailing slash.
+	let currentPath = resolve(path);
+
+	let limit = maxDepth;
+	while (limit > 0) {
+		limit--;
+
+		if (await isStorageRoot(currentPath)) {
+			return currentPath;
+		}
+
+		const previousPath = currentPath;
+		currentPath = resolve(currentPath, '..');
+
+		if (previousPath === currentPath) {
+			// We've reached the root directory - check at most one last time and then stop looping.
+			if (limit > 1) limit = 1;
+		}
+	}
+
+	return null;
+}
+
 // Ref: https://stackoverflow.com/a/31976060
 const HIDDEN_CHARS = /[\s\/\\<>:"|?*\u0000-\u0031]+/g;
 export function nameToSlug(name: string): string {
