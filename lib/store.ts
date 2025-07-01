@@ -26,6 +26,10 @@ export function nameToSlug(name: string): string {
 	return name.toLocaleLowerCase().replace(HIDDEN_CHARS, '-').replace(/(^-+|-+$)/g, '');
 }
 
+export function isValidPartitionName(name: string): boolean {
+	return !['all', 'by-id'].includes(name);
+}
+
 export interface CreateDirectoryLocationOpts {
 	rootPath: string;
 	metadata: Metadata;
@@ -45,6 +49,10 @@ export function createDirectoryLocation({ rootPath, metadata, preferredPartition
 }
 
 export function resolveDirectoryLocation(location: DirectoryLocation): string {
+	if (!isValidPartitionName(location.partition)) {
+		throw new Error(`Partition name ${JSON.stringify(location.partition)} is reserved and can't be used.`);
+	}
+
 	return resolve(
 		location.rootPath,
 		location.partition,
