@@ -3,6 +3,7 @@ import { basename, isAbsolute, join as joinPath, relative, resolve } from 'node:
 import { serializeMetadata, type Metadata } from './metadata.ts';
 import { timeToName } from './util.ts';
 
+export const ROOT_METADATA_FILENAME = '.storage-root.json';
 export const DIRECTORY_METADATA_FILENAME = '.storage-meta.json';
 
 export interface PartitionLocation {
@@ -33,6 +34,38 @@ export function nameToSlug(name: string): string {
 
 export function isValidPartitionName(name: string): boolean {
 	return !['all', 'by-id'].includes(name);
+}
+
+export interface CreateStorageRootOpts {
+	rootPath: string;
+}
+
+export async function createStorageRoot({ rootPath }: CreateStorageRootOpts): Promise<void> {
+	if (!isAbsolute(rootPath)) throw new Error('rootPath of a new storage root must be absolute.');
+
+	const storageRootMetadataPath = resolve(rootPath, ROOT_METADATA_FILENAME);
+
+	await mkdir(rootPath, {
+		recursive: true,
+	});
+
+	try {
+		await writeFile(storageRootMetadataPath, '{\n}', {
+			// Fail if the file already exists to prevent overriding an existing storage root metadata.
+			flag: 'wx',
+		});
+	} catch (ex: any) {
+		if (ex.code === 'EEXIST') {
+			throw new Error('Specified path already has a storage root metadata file.', {
+				cause: ex,
+			});
+		}
+
+		throw ex;
+	}
+
+	await mkdir(resolve(rootPath, 'all'));
+	await mkdir(resolve(rootPath, 'by-id'));
 }
 
 export interface CreateDirectoryLocationOpts {
