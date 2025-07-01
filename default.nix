@@ -6,5 +6,5 @@ pkgs.buildNpmPackage {
   src = ./.;
 
   # Obtained with `prefetch-npm-deps package-lock.json`
-  npmDepsHash = "sha256-T6UuVlGs2DUvgKZnizcHTGYqdy16fGA/zR4cHG2UQ5Q=";
+  npmDepsHash = "sha256-LKz4UBEDZbd/DPn4BINE2tICd27A2skDocFUOHp1kho=";
 }
