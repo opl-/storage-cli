@@ -1,6 +1,7 @@
 import { basename, sep as pathSeparator, relative, resolve } from 'node:path';
 import type { Argv } from 'yargs';
 import { findStorageRoot, isStorageDirectory, moveDirectory, parseDirectoryName, type DirectoryLocation } from '../store.ts';
+import { access, constants as fsConstants } from 'node:fs/promises';
 
 export function mvCommand(yargs: Argv) {
 	return yargs.command({

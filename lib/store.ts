@@ -282,17 +282,7 @@ export async function moveDirectory({ source, target }: MoveDirectoryOpts): Prom
 	const targetPath = typeof(target) === 'string' ? target : resolveDirectoryLocation(target);
 	const targetLocation = typeof(target) === 'string' ? parseDirectoryLocation(target) : target;
 
-	try {
-		// Ensure this process won't override an existing path.
-		await access(targetPath, fsConstants.F_OK);
-		throw new Error(`Target path already exists: ${targetPath}`);
-	} catch (ex: any) {
-		if (ex.code !== 'ENOENT') {
-			// The expected behavior is for the target to not exist, but something else happened.
-			throw ex;
-		}
-	}
-
+	// This will fail if the target is a file (ENOTDIR) or a non-empty directory (ENOTEMPTY).
 	await rename(sourcePath, targetPath);
 
 	// The source might not be inside of a storage root.
