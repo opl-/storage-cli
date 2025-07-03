@@ -251,7 +251,9 @@ export async function createDirectory(opts: CreateDirectoryOpts): Promise<string
 	}
 
 	try {
-		await writeFile(metadataPath, serializeMetadata(opts.metadata));
+		await writeFile(metadataPath, serializeMetadata(opts.metadata), {
+			flag: 'wx',
+		});
 	} catch (ex: any) {
 		throw new Error('Error writing directory metadata.', { cause: ex });
 	}
