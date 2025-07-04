@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "type": "module",
   "main": "dist/index.js",
+  "engines": {
+    "node": ">=22"
+  },
   "exports": {
     ".": "./dist/index.js",
     "./package.json": "./package.json"
