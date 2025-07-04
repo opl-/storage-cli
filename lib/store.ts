@@ -6,6 +6,16 @@ import { timeToName } from './util.ts';
 export const ROOT_METADATA_FILENAME = '.storage-root.json';
 export const DIRECTORY_METADATA_FILENAME = '.storage-meta.json';
 
+async function ignoreErrorCodes(codes: Array<string>, block: () => Promise<void>): Promise<void> {
+	try {
+		await block();
+	} catch (ex: any) {
+		if (!codes.includes(ex.code)) {
+			throw ex;
+		}
+	}
+}
+
 export interface PartitionLocation {
 	rootPath: string;
 	partition: string;
@@ -225,8 +235,8 @@ export async function removeLinks({ location }: CreateLinksOpts): Promise<void> 
 	const byIdLinkPath = resolve(location.rootPath, 'by-id/', location.identifier);
 
 	await Promise.all([
-		unlink(allLinkPath),
-		unlink(byIdLinkPath),
+		ignoreErrorCodes(['ENOENT'], () => unlink(allLinkPath)),
+		ignoreErrorCodes(['ENOENT'], () => unlink(byIdLinkPath)),
 	]);
 }
 
