@@ -322,13 +322,13 @@ export async function moveDirectory({ source, target }: MoveDirectoryOpts): Prom
 	const targetPath = typeof(target) === 'string' ? target : resolveDirectoryLocation(target);
 	const targetLocation = typeof(target) === 'string' ? parseDirectoryLocation(target) : target;
 
-	// This will fail if the target is a file (ENOTDIR) or a non-empty directory (ENOTEMPTY).
 	try {
+		// This will fail if the target is a file (ENOTDIR) or a non-empty directory (ENOTEMPTY).
 		await rename(sourcePath, targetPath);
 	} catch (ex: any) {
-		if (ex.code === 'EPERM') {
-			// This code is also used when the target is on a different file system - try to copy instead.
-			// If it really is a permissions issue, this operation will fail too.
+		if (ex.code === 'EXDEV' || ex.code === 'EPERM') {
+			// EXDEV means the target is on a different file system - try to copy instead.
+			// EPERM is used in the same situation on sshfs - try anyway. If it really is a permissions issue, this operation will fail too.
 			await moveDirectoryViaCopy(sourcePath, targetPath);
 		} else {
 			throw ex;
