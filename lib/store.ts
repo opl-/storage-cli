@@ -1,4 +1,4 @@
-import { access, constants as fsConstants, mkdir, rename, symlink, unlink, utimes, writeFile } from 'node:fs/promises';
+import { access, cp, constants as fsConstants, mkdir, rename, rm, symlink, unlink, utimes, writeFile } from 'node:fs/promises';
 import { basename, isAbsolute, join as joinPath, relative, resolve } from 'node:path';
 import { serializeMetadata, type Metadata } from './metadata.ts';
 import { timeToName } from './util.ts';
@@ -286,6 +286,36 @@ export interface MoveDirectoryOpts {
 	target: string | DirectoryLocation;
 }
 
+async function moveDirectoryViaCopy(sourcePath: string, targetPath: string): Promise<void> {
+	try {
+		// Copy the source.
+		await cp(sourcePath, targetPath, {
+			recursive: true,
+			preserveTimestamps: true,
+			// Prevent accidentally merging two directories.
+			errorOnExist: true,
+			// And overriding any existing paths.
+			mode: fsConstants.COPYFILE_EXCL,
+			// Leave symlinks as they are.
+			dereference: false,
+			verbatimSymlinks: true,
+		});
+
+		await rm(sourcePath, {
+			// No force to ensure a clean deletion.
+			recursive: true,
+		});
+	} catch (ex: any) {
+		// If the operation failed, undo the changes.
+		await rm(targetPath, {
+			force: true,
+			recursive: true,
+		});
+
+		throw ex;
+	}
+}
+
 export async function moveDirectory({ source, target }: MoveDirectoryOpts): Promise<void> {
 	const sourcePath = typeof(source) === 'string' ? source : resolveDirectoryLocation(source);
 	const sourceLocation = typeof(source) === 'string' ? parseDirectoryLocation(source) : source;
@@ -293,7 +323,17 @@ export async function moveDirectory({ source, target }: MoveDirectoryOpts): Prom
 	const targetLocation = typeof(target) === 'string' ? parseDirectoryLocation(target) : target;
 
 	// This will fail if the target is a file (ENOTDIR) or a non-empty directory (ENOTEMPTY).
-	await rename(sourcePath, targetPath);
+	try {
+		await rename(sourcePath, targetPath);
+	} catch (ex: any) {
+		if (ex.code === 'EPERM') {
+			// This code is also used when the target is on a different file system - try to copy instead.
+			// If it really is a permissions issue, this operation will fail too.
+			await moveDirectoryViaCopy(sourcePath, targetPath);
+		} else {
+			throw ex;
+		}
+	}
 
 	// The source might not be inside of a storage root.
 	if (sourceLocation !== null) {
