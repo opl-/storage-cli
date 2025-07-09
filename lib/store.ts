@@ -102,7 +102,7 @@ export async function findStorageRoot({ path, maxDepth = Infinity }: FindStorage
 }
 
 // Ref: https://stackoverflow.com/a/31976060
-const HIDDEN_CHARS = /[\s\/\\<>:"|?*\u0000-\u0031]+/g;
+const HIDDEN_CHARS = /[\s\/\\<>:"|?*\u0000-\u001f]+/g;
 export function nameToSlug(name: string): string {
 	return name.toLocaleLowerCase().replace(HIDDEN_CHARS, '-').replace(/(^-+|-+$)/g, '');
 }
